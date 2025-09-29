@@ -1,11 +1,87 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// src/pages/index.astro
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Room App</title>
+        <style>
+            body {
+                font-family: system-ui, sans-serif;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 2rem;
+                text-align: center;
+            }
+
+            .hero {
+                margin: 4rem 0;
+            }
+
+            .create-btn {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                padding: 1rem 2rem;
+                font-size: 1.2rem;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: transform 0.2s;
+            }
+
+            .create-btn:hover {
+                transform: translateY(-2px);
+            }
+
+            .create-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="hero">
+            <h1>🏠 Room App</h1>
+            <p>Create a room and invite a friend to join!</p>
+            <p>Maximum 2 users per room.</p>
+        </div>
+
+        <button id="createRoom" class="create-btn"> Create New Room </button>
+
+        <script>
+            const API_BASE = 'http://localhost:4000/api'
+
+            document
+                .getElementById('createRoom')!
+                .addEventListener('click', async function () {
+                    const button = this
+                    button.textContent = 'Creating Room...'
+
+                    try {
+                        const response = await fetch(`${API_BASE}/rooms`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        })
+
+                        if (!response.ok) {
+                            throw new Error('Failed to create room')
+                        }
+
+                        const data = await response.json()
+                        console.log('Room created:', data)
+                        window.location.href = `/room?id=${data.room_id}`
+                    } catch (error) {
+                        console.error('Error creating room:', error)
+                        alert('Failed to create room. Please try again.')
+                        button.textContent = 'Create New Room'
+                    }
+                })
+        </script>
+    </body>
+</html>

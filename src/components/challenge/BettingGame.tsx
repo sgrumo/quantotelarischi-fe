@@ -1,41 +1,36 @@
 import { Channel, Socket } from 'phoenix'
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { match } from 'ts-pattern'
 import {
     IncomingActionSchema,
     JoinRoomResponseSchema,
+    type GameState,
     type IncomingAction,
     type OutgoingAction,
     type RoomInfo,
 } from '../../lib/models/rooms'
+import '../../styles/globals.css'
+import { Button } from '../ui/Button'
 
 interface BettingGameProps {
     roomId: string
-    playerId?: string
 }
-
-const SOCKET_URL = 'ws://localhost:4000/socket'
-type GameState =
-    | 'Idle'
-    | 'ChallengeSent'
-    | 'ChallengeReceived'
-    | 'ChallengeAccepted'
-    | 'ChallengeDeclined'
-    | 'BetPlaced'
-    | 'BetCompleted'
 
 export default function BettingGame({ roomId }: BettingGameProps) {
     const [isConnected, setIsConnected] = useState(false)
     const [roomInfo, setRoomInfo] = useState<RoomInfo>()
     const [userId, setUserId] = useState<string>()
+    const [challengeBetAmount, setChallengeBetAmount] = useState<number>()
     const [betAmount, setBetAmount] = useState<number>()
+    const [challengeDescription, setChallengeDescription] = useState<string>()
     const [gameState, setGameState] = useState<GameState>('Idle')
+    const [error, setError] = useState<string>()
 
     const socketRef = useRef<Socket>()
     const channelRef = useRef<Channel>()
 
     useEffect(() => {
-        const socket = new Socket(SOCKET_URL, {
+        const socket = new Socket(import.meta.env.PUBLIC_WS_URL, {
             logger: (kind, msg, data) => {
                 if (process.env.NODE_ENV === 'development') {
                     console.log(`Phoenix ${kind}: ${msg}`, data)
@@ -117,7 +112,7 @@ export default function BettingGame({ roomId }: BettingGameProps) {
         }
     }, [])
 
-    const handleIncomingMessage = (action: IncomingAction) => {
+    const handleIncomingMessage = useCallback((action: IncomingAction) => {
         match(action)
             .with({ event: 'user_joined' }, ({ payload }) => {
                 setRoomInfo(payload)
@@ -139,7 +134,7 @@ export default function BettingGame({ roomId }: BettingGameProps) {
                         prev && { ...prev, challengeAmount: payload.amount },
                 )
             })
-            .with({ event: 'challenge_declined' }, ({ payload }) => {
+            .with({ event: 'challenge_declined' }, () => {
                 setGameState('ChallengeDeclined')
             })
             .with({ event: 'bet_completed' }, ({ payload }) => {
@@ -153,15 +148,14 @@ export default function BettingGame({ roomId }: BettingGameProps) {
                         },
                 )
             })
-            .with({ event: 'user_left' }, ({ payload }) => {})
+            .with({ event: 'user_left' }, () => {
+                setGameState('Idle')
+                setRoomInfo(undefined)
+            })
             .exhaustive()
-    }
+    }, [])
 
-    const isChallenger = useMemo(() => {
-        return userId === roomInfo?.challengerId
-    }, [userId, roomInfo])
-
-    const sendEvent = ({ event, payload }: OutgoingAction) => {
+    const sendEvent = useCallback(({ event, payload }: OutgoingAction) => {
         if (channelRef.current) {
             channelRef.current
                 .push(event, payload)
@@ -170,38 +164,54 @@ export default function BettingGame({ roomId }: BettingGameProps) {
                 })
                 .receive('error', resp => {
                     console.error(`Failed to send ${event}:`, resp)
+                    setError(`Failed to ${event.replace('_', ' ')}`)
                 })
         }
-    }
+    }, [])
 
-    const handleSendChallenge = () => {
+    const handleSendChallenge = useCallback(() => {
+        if (!challengeDescription || challengeDescription.trim() === '') {
+            return
+        }
         sendEvent({
             event: 'send_challenge',
-            payload: { challenge_description: 'A new challenge!' },
+            payload: { challenge_description: challengeDescription },
         })
-    }
+    }, [sendEvent])
 
-    const handleAcceptChallenge = () => {
-        sendEvent({ event: 'accept_challenge', payload: { amount: 100 } })
-    }
+    const handleAcceptChallenge = useCallback(() => {
+        if (!challengeBetAmount || challengeBetAmount <= 0) {
+            return
+        }
+        sendEvent({
+            event: 'accept_challenge',
+            payload: { amount: challengeBetAmount },
+        })
+    }, [sendEvent, challengeBetAmount])
 
-    const handleDenyChallenge = () => {
+    const handleDenyChallenge = useCallback(() => {
         sendEvent({ event: 'decline_challenge', payload: {} })
-    }
+    }, [sendEvent])
 
-    const handlePlaceBet = () => {
-        sendEvent({ event: 'place_bet', payload: { amount: 50 } })
-    }
+    const handlePlaceBet = useCallback(() => {
+        if (betAmount && betAmount > 0) {
+            sendEvent({ event: 'place_bet', payload: { amount: betAmount } })
+        }
+    }, [sendEvent, betAmount])
 
-    const handleResetGame = () => {
+    const handleResetGame = useCallback(() => {
+        setGameState('Idle')
         sendEvent({ event: 'reset_game', payload: {} })
-    }
+    }, [sendEvent])
 
-    console.log('Room Info:', roomInfo)
+    const isChallenger = useMemo(() => {
+        return userId === roomInfo?.challengerId
+    }, [userId, roomInfo])
 
     return (
         <div style={{ padding: '20px', fontFamily: 'monospace' }}>
             <h2>Betting Game - Room: {roomId}</h2>
+            {error && <p style={{ color: 'red' }}>Error: {error}</p>}
             <p>Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
             {userId && <p>Your User ID: {userId}</p>}
             {roomInfo && userId && (
@@ -210,17 +220,17 @@ export default function BettingGame({ roomId }: BettingGameProps) {
                 </span>
             )}
             {isChallenger && (
-                <button
+                <Button
                     onClick={handleSendChallenge}
                     disabled={roomInfo?.challengedId === null}
                 >
                     Send challenge
-                </button>
+                </Button>
             )}
             {!isChallenger && roomInfo?.challengeDescription && (
                 <div>
-                    <button onClick={handleAcceptChallenge}>Accept</button>
-                    <button onClick={handleDenyChallenge}>Deny</button>
+                    <Button onClick={handleAcceptChallenge}>Accept</Button>
+                    <Button onClick={handleDenyChallenge}>Deny</Button>
                 </div>
             )}
             {!isChallenger && roomInfo && roomInfo.challengeDescription && (
@@ -243,7 +253,7 @@ export default function BettingGame({ roomId }: BettingGameProps) {
                             setBetAmount(parseInt(e.currentTarget.value))
                         }
                     />
-                    <button onClick={handlePlaceBet}>Place bet</button>
+                    <Button onClick={handlePlaceBet}>Place bet</Button>
                 </div>
             )}
             {gameState === 'BetCompleted' && roomInfo?.betStatus && (
@@ -251,7 +261,7 @@ export default function BettingGame({ roomId }: BettingGameProps) {
                     <h3>Bet Completed!</h3>
                     <p>Bet Status: {roomInfo.betStatus}</p>
                     {isChallenger && (
-                        <button onClick={handleResetGame}>Reset Game</button>
+                        <Button onClick={handleResetGame}>Reset Game</Button>
                     )}
                 </div>
             )}

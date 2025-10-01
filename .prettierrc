@@ -9,6 +9,10 @@
         "prettier-plugin-astro",
         "prettier-plugin-astro-organize-imports"
     ],
+    "tailwindFunctions": [
+        "clsx",
+        "cva"
+    ],
     "overrides": [
         {
             "files": "*.astro",

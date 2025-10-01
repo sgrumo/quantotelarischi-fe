@@ -1,5 +1,13 @@
 import { z } from 'zod'
 
+export const NewRoomResponseSchema = z
+    .object({
+        room_id: z.string(),
+    })
+    .transform(data => ({
+        roomId: data.room_id,
+    }))
+
 export const UserSchema = z.string()
 export const ChallengeSchema = z.object({
     challenge_amount: z.number().nullish(),
@@ -118,6 +126,7 @@ export type Bet = z.infer<typeof BetSchema>
 export type IncomingAction = z.infer<typeof IncomingActionSchema>
 export type OutgoingAction = z.infer<typeof OutgoingActionSchema>
 export type JoinRoomResponse = z.infer<typeof JoinRoomResponseSchema>
+export type NewRoomResponse = z.infer<typeof NewRoomResponseSchema>
 
 export const RoomStateSchema = z.object({
     connectionStatus: z.enum([
@@ -139,3 +148,12 @@ export type CompleteRoomState = RoomState & {
     hasChallengeReceived: boolean
     lastChallengeAmount: number | null
 }
+
+export type GameState =
+    | 'Idle'
+    | 'ChallengeSent'
+    | 'ChallengeReceived'
+    | 'ChallengeAccepted'
+    | 'ChallengeDeclined'
+    | 'BetPlaced'
+    | 'BetCompleted'

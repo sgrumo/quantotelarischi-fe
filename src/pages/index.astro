@@ -1,24 +1,190 @@
 ---
 import { NewRoom } from '@/components/challenge/NewRoom'
-import { ClientRouter } from 'astro:transitions'
-import '../styles/globals.css'
+import { Badge } from '@/components/ui/Badge'
+import {
+    Card,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/Card'
+import BaseLayout from '@/layouts/BaseLayout.astro'
 ---
 
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Room App</title>
-        <ClientRouter />
-    </head>
-    <body>
-        <div class="hero">
-            <h1>🏠 Room App</h1>
-            <p>Create a room and invite a friend to join!</p>
-            <p>Maximum 2 users per room.</p>
-        </div>
+<BaseLayout>
+    <main class="bg-background min-h-screen">
+        <!-- Hero Section -->
+        <section
+            class="relative flex min-h-screen flex-col items-center justify-center px-6 py-12"
+        >
+            <div class="max-w-5xl space-y-8 text-center">
+                <h1 class="font-heading mb-8 text-7xl leading-none md:text-9xl">
+                    🎲<br />Quantomelarischio
+                </h1>
+                <p class="font-heading text-2xl md:text-3xl">
+                    The Ultimate Challenge & Betting Game
+                </p>
+            </div>
 
-        <NewRoom client:only />
-    </body>
-</html>
+            <!-- Scroll Arrow -->
+            <a
+                href="#instructions"
+                class="bg-main border-border rounded-base hover:translate-x-boxShadowX hover:translate-y-boxShadowY shadow-shadow absolute bottom-12 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center border-4 transition-all"
+                aria-label="Scroll to instructions"
+            >
+                <svg
+                    class="h-8 w-8"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="3"
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </a>
+        </section>
+
+        <!-- Instructions Section -->
+        <section id="instructions" class="min-h-screen px-6 py-20">
+            <div class="mx-auto max-w-4xl">
+                <h2 class="font-heading mb-16 text-center text-5xl md:text-6xl">
+                    How to Play
+                </h2>
+
+                <div class="mb-16 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <div class="flex items-start gap-4">
+                                <Badge
+                                    className="font-heading px-4 py-2 text-2xl"
+                                    >1</Badge
+                                >
+                                <div>
+                                    <CardTitle>Create a new room</CardTitle>
+                                    <CardDescription>
+                                        Click the button below to generate your
+                                        unique room
+                                    </CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <div class="flex items-start gap-4">
+                                <Badge
+                                    className="font-heading px-4 py-2 text-2xl"
+                                    >2</Badge
+                                >
+                                <div>
+                                    <CardTitle>Send the link</CardTitle>
+                                    <CardDescription>
+                                        Share the generated link with a friend
+                                        (max 2 users per room)
+                                    </CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <div class="flex items-start gap-4">
+                                <Badge
+                                    className="font-heading px-4 py-2 text-2xl"
+                                    >3</Badge
+                                >
+                                <div>
+                                    <CardTitle>Send the challenge</CardTitle>
+                                    <CardDescription>
+                                        Write a challenge description (what the
+                                        loser must do)
+                                    </CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <div class="flex items-start gap-4">
+                                <Badge
+                                    className="font-heading px-4 py-2 text-2xl"
+                                    >4</Badge
+                                >
+                                <div>
+                                    <CardTitle>Wait for bet amount</CardTitle>
+                                    <CardDescription>
+                                        Your friend sets the bet amount (minimum
+                                        2)
+                                    </CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <div class="flex items-start gap-4">
+                                <Badge
+                                    className="font-heading px-4 py-2 text-2xl"
+                                    >5</Badge
+                                >
+                                <div>
+                                    <CardTitle>Place your bets</CardTitle>
+                                    <CardDescription>
+                                        Both players bet a number from 2 to
+                                        (betAmount - 1)
+                                    </CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <div class="flex items-start gap-4">
+                                <Badge
+                                    className="font-heading px-4 py-2 text-2xl"
+                                    >6</Badge
+                                >
+                                <div>
+                                    <CardTitle>The winner is decided!</CardTitle
+                                    >
+                                    <CardDescription>
+                                        <span
+                                            class="font-heading text-foreground"
+                                        >
+                                            If Bet₁ == Bet₂ <span
+                                                class="text-main">OR</span
+                                            > Bet₁ + Bet₂ == BetAmount
+                                        </span>
+                                        <br />
+                                        → The <strong>Challenged</strong> must complete
+                                        the challenge!
+                                    </CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                    </Card>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="flex justify-center">
+                    <div class="inline-block">
+                        <NewRoom client:only="preact" />
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</BaseLayout>
+
+<style>
+    html {
+        scroll-behavior: smooth;
+    }
+</style>

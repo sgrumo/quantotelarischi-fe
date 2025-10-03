@@ -1,5 +1,6 @@
 import { Channel, Socket } from 'phoenix'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
+import { toast } from 'sonner'
 import { match } from 'ts-pattern'
 import {
     IncomingActionSchema,
@@ -10,7 +11,17 @@ import {
     type RoomInfo,
 } from '../../lib/models/rooms'
 import '../../styles/globals.css'
+import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '../ui/Card'
+import { Input } from '../ui/Input'
+import { Textarea } from '../ui/Textarea'
 
 interface BettingGameProps {
     roomId: string
@@ -20,14 +31,18 @@ export default function BettingGame({ roomId }: BettingGameProps) {
     const [isConnected, setIsConnected] = useState(false)
     const [roomInfo, setRoomInfo] = useState<RoomInfo>()
     const [userId, setUserId] = useState<string>()
-    const [challengeBetAmount, setChallengeBetAmount] = useState<number>()
-    const [betAmount, setBetAmount] = useState<number>()
-    const [challengeDescription, setChallengeDescription] = useState<string>()
+    const [challengeBetAmount, setChallengeBetAmount] = useState<number>(100)
+    const [betAmount, setBetAmount] = useState<number>(1)
+    const [challengeDescription, setChallengeDescription] = useState<string>('')
     const [gameState, setGameState] = useState<GameState>('Idle')
-    const [error, setError] = useState<string>()
 
     const socketRef = useRef<Socket>()
     const channelRef = useRef<Channel>()
+    const toastIdRef = useRef(0)
+
+    const showToast = useCallback((message: string) => {
+        toast(message, { id: toastIdRef.current++ })
+    }, [])
 
     useEffect(() => {
         const socket = new Socket(import.meta.env.PUBLIC_WS_URL, {
@@ -47,6 +62,7 @@ export default function BettingGame({ roomId }: BettingGameProps) {
 
         socket.onError(error => {
             console.error('Socket error:', error)
+            showToast('Connection error occurred')
         })
 
         socket.onClose(event => {
@@ -67,9 +83,11 @@ export default function BettingGame({ roomId }: BettingGameProps) {
             })
             .receive('error', resp => {
                 console.error('Unable to join room:', resp)
+                showToast('Failed to join room')
             })
             .receive('timeout', () => {
                 console.error('Join timeout')
+                showToast('Connection timeout')
             })
 
         if (joinResult) {
@@ -155,52 +173,72 @@ export default function BettingGame({ roomId }: BettingGameProps) {
             .exhaustive()
     }, [])
 
-    const sendEvent = useCallback(({ event, payload }: OutgoingAction) => {
-        if (channelRef.current) {
-            channelRef.current
-                .push(event, payload)
-                .receive('ok', resp => {
-                    console.log(`${event} sent successfully:`, resp)
-                })
-                .receive('error', resp => {
-                    console.error(`Failed to send ${event}:`, resp)
-                    setError(`Failed to ${event.replace('_', ' ')}`)
-                })
-        }
-    }, [])
+    const sendEvent = useCallback(
+        ({ event, payload }: OutgoingAction) => {
+            if (channelRef.current) {
+                channelRef.current
+                    .push(event, payload)
+                    .receive('ok', resp => {
+                        console.log(`${event} sent successfully:`, resp)
+                    })
+                    .receive('error', resp => {
+                        console.error(`Failed to send ${event}:`, resp)
+                        showToast(`Failed to ${event.replace(/_/g, ' ')}`)
+                    })
+            }
+        },
+        [showToast],
+    )
 
     const handleSendChallenge = useCallback(() => {
         if (!challengeDescription || challengeDescription.trim() === '') {
+            showToast('Please enter a challenge description')
             return
         }
         sendEvent({
             event: 'send_challenge',
             payload: { challenge_description: challengeDescription },
         })
-    }, [sendEvent])
+        setChallengeDescription('')
+    }, [sendEvent, challengeDescription, showToast])
 
     const handleAcceptChallenge = useCallback(() => {
         if (!challengeBetAmount || challengeBetAmount <= 0) {
+            showToast('Please enter a valid bet amount')
             return
         }
         sendEvent({
             event: 'accept_challenge',
             payload: { amount: challengeBetAmount },
         })
-    }, [sendEvent, challengeBetAmount])
+    }, [sendEvent, challengeBetAmount, showToast])
 
     const handleDenyChallenge = useCallback(() => {
         sendEvent({ event: 'decline_challenge', payload: {} })
     }, [sendEvent])
 
     const handlePlaceBet = useCallback(() => {
-        if (betAmount && betAmount > 0) {
-            sendEvent({ event: 'place_bet', payload: { amount: betAmount } })
+        if (!betAmount || betAmount <= 0) {
+            showToast('Please enter a valid bet amount')
+            return
         }
-    }, [sendEvent, betAmount])
+        if (
+            roomInfo?.challengeAmount &&
+            betAmount >= roomInfo.challengeAmount
+        ) {
+            showToast(
+                `Bet amount must be less than ${roomInfo.challengeAmount}`,
+            )
+            return
+        }
+        sendEvent({ event: 'place_bet', payload: { amount: betAmount } })
+    }, [sendEvent, betAmount, roomInfo, showToast])
 
     const handleResetGame = useCallback(() => {
         setGameState('Idle')
+        setChallengeDescription('')
+        setChallengeBetAmount(100)
+        setBetAmount(1)
         sendEvent({ event: 'reset_game', payload: {} })
     }, [sendEvent])
 
@@ -209,62 +247,201 @@ export default function BettingGame({ roomId }: BettingGameProps) {
     }, [userId, roomInfo])
 
     return (
-        <div style={{ padding: '20px', fontFamily: 'monospace' }}>
-            <h2>Betting Game - Room: {roomId}</h2>
-            {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-            <p>Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
-            {userId && <p>Your User ID: {userId}</p>}
-            {roomInfo && userId && (
-                <span>
-                    You are the {isChallenger ? 'Challenger' : 'Challenged'}
-                </span>
-            )}
-            {isChallenger && (
-                <Button
-                    onClick={handleSendChallenge}
-                    disabled={roomInfo?.challengedId === null}
-                >
-                    Send challenge
-                </Button>
-            )}
-            {!isChallenger && roomInfo?.challengeDescription && (
-                <div>
-                    <Button onClick={handleAcceptChallenge}>Accept</Button>
-                    <Button onClick={handleDenyChallenge}>Deny</Button>
-                </div>
-            )}
-            {!isChallenger && roomInfo && roomInfo.challengeDescription && (
-                <div>
-                    <h3>Current Challenge:</h3>
-                    <p>{roomInfo.challengeDescription}</p>
-                </div>
-            )}
-            {gameState === 'ChallengeAccepted' && roomInfo?.challengeAmount && (
-                <div>
-                    <h3>Challenge Accepted!</h3>
-                    <p>Challenge Amount: {roomInfo.challengeAmount}</p>
-                    <input
-                        type="number"
-                        placeholder="Your Bet Amount"
-                        min={1}
-                        max={roomInfo.challengeAmount - 1}
-                        defaultValue={1}
-                        onChange={e =>
-                            setBetAmount(parseInt(e.currentTarget.value))
-                        }
-                    />
-                    <Button onClick={handlePlaceBet}>Place bet</Button>
-                </div>
-            )}
-            {gameState === 'BetCompleted' && roomInfo?.betStatus && (
-                <div>
-                    <h3>Bet Completed!</h3>
-                    <p>Bet Status: {roomInfo.betStatus}</p>
-                    {isChallenger && (
-                        <Button onClick={handleResetGame}>Reset Game</Button>
+        <div className="bg-background min-h-screen p-6">
+            <div className="mx-auto max-w-2xl space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-3xl">
+                            🎲 Betting Game
+                        </CardTitle>
+                        {roomInfo && userId && (
+                            <CardDescription className="flex items-center gap-2">
+                                <span className="font-heading">Your Role:</span>
+                                <Badge>
+                                    {isChallenger ? 'CHALLENGER' : 'CHALLENGED'}
+                                </Badge>
+                            </CardDescription>
+                        )}
+                    </CardHeader>
+                </Card>
+
+                {isChallenger && gameState === 'Idle' && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Send Challenge</CardTitle>
+                            <CardDescription>
+                                Create a challenge for your opponent
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <label htmlFor="challenge-description">
+                                    Challenge Description
+                                </label>
+                                <Textarea
+                                    id="challenge-description"
+                                    rows={4}
+                                    placeholder="Describe your challenge..."
+                                    value={challengeDescription}
+                                    onChange={e =>
+                                        setChallengeDescription(
+                                            e.currentTarget.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <Button
+                                onClick={handleSendChallenge}
+                                disabled={
+                                    roomInfo?.challengedId === null ||
+                                    !isConnected
+                                }
+                            >
+                                Send Challenge →
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {!isChallenger &&
+                    roomInfo?.challengeDescription &&
+                    gameState === 'ChallengeReceived' && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Challenge Received!</CardTitle>
+                                <CardDescription>
+                                    Review the challenge and decide your
+                                    response
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Card className="bg-secondary-background">
+                                    <CardContent>
+                                        <p className="font-base text-lg">
+                                            {roomInfo.challengeDescription}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                <div className="space-y-2">
+                                    <label htmlFor="challenge-bet-amount">
+                                        Your Bet Amount
+                                    </label>
+                                    <Input
+                                        id="challenge-bet-amount"
+                                        type="number"
+                                        min={1}
+                                        value={challengeBetAmount}
+                                        onChange={e =>
+                                            setChallengeBetAmount(
+                                                parseInt(
+                                                    e.currentTarget.value,
+                                                ) || 0,
+                                            )
+                                        }
+                                    />
+                                </div>
+                                <div className="flex gap-4">
+                                    <Button
+                                        onClick={handleAcceptChallenge}
+                                        disabled={!isConnected}
+                                        className="flex-1"
+                                    >
+                                        ✓ Accept
+                                    </Button>
+                                    <Button
+                                        onClick={handleDenyChallenge}
+                                        disabled={!isConnected}
+                                        variant="neutral"
+                                        className="flex-1"
+                                    >
+                                        ✗ Deny
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
                     )}
-                </div>
-            )}
+
+                {gameState === 'ChallengeAccepted' &&
+                    roomInfo?.challengeAmount && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Challenge Accepted!</CardTitle>
+                                <CardDescription>
+                                    Place your bet now
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center gap-2 text-lg">
+                                    <span className="font-base">
+                                        Challenge Amount:
+                                    </span>
+                                    <Badge className="px-4 py-2 text-2xl">
+                                        {roomInfo.challengeAmount}
+                                    </Badge>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="bet-amount">
+                                        Place Your Bet (max:{' '}
+                                        {roomInfo.challengeAmount - 1})
+                                    </label>
+                                    <Input
+                                        id="bet-amount"
+                                        type="number"
+                                        min={1}
+                                        max={roomInfo.challengeAmount - 1}
+                                        value={betAmount}
+                                        onChange={e =>
+                                            setBetAmount(
+                                                parseInt(
+                                                    e.currentTarget.value,
+                                                ) || 1,
+                                            )
+                                        }
+                                    />
+                                </div>
+                                <Button
+                                    onClick={handlePlaceBet}
+                                    disabled={!isConnected}
+                                >
+                                    Place Bet →
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                {gameState === 'BetCompleted' && roomInfo?.betStatus && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Bet Completed!</CardTitle>
+                            <CardDescription>
+                                The results are in
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Card className="bg-secondary-background">
+                                <CardContent>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-heading text-lg">
+                                            Status:
+                                        </span>
+                                        <Badge className="px-4 py-2 text-xl">
+                                            {roomInfo.betStatus}
+                                        </Badge>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            {isChallenger && (
+                                <Button
+                                    onClick={handleResetGame}
+                                    disabled={!isConnected}
+                                >
+                                    ↻ Reset Game
+                                </Button>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
+            </div>
         </div>
     )
 }

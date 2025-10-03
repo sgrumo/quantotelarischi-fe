@@ -1,6 +1,5 @@
 ---
-import { ClientRouter } from 'astro:transitions'
-
+import BaseLayout from '@/layouts/BaseLayout.astro'
 import BettingGame from '../components/challenge/BettingGame'
 
 export const prerender = false
@@ -10,16 +9,8 @@ const id = Astro.url.searchParams.get('id') || ''
 if (!id) return Astro.redirect('/404')
 ---
 
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <ClientRouter />
-
-        <title>Room {id}</title>
-    </head>
+<BaseLayout>
     <body>
         <BettingGame roomId={id} client:only />
     </body>
-</html>
+</BaseLayout>

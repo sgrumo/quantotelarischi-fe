@@ -1,6 +1,7 @@
 import { NewRoomResponseSchema } from '@/lib/models/rooms'
 import { navigate } from 'astro:transitions/client'
 import { useState } from 'preact/hooks'
+import { safeParse } from 'zod'
 import { Button } from '../ui/Button'
 
 export const NewRoom = () => {
@@ -16,7 +17,12 @@ export const NewRoom = () => {
         })
             .then(async res => {
                 const data = await res.json()
-                const { roomId } = NewRoomResponseSchema.parse(data)
+                const result = safeParse(NewRoomResponseSchema, data)
+                if (!result.success) {
+                    console.error('Invalid response:', result.error)
+                    throw new Error('Invalid response from server')
+                }
+                const roomId = result.data.roomId
                 navigate(`/room?id=${roomId}`)
             })
             .catch(error => {

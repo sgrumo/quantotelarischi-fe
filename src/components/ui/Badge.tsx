@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 
 import * as React from 'preact'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 
 const badgeVariants = cva(
     'rounded-base border-border font-base focus-visible:border-ring focus-visible:ring-ring/50 inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden border-2 px-2.5 py-0.5 text-xs whitespace-nowrap focus-visible:ring-[3px] [&>svg]:pointer-events-none [&>svg]:size-3',

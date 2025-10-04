@@ -12,6 +12,7 @@
     "@astrojs/preact": "^4.1.0",
     "@fontsource-variable/dm-sans": "^5.2.8",
     "@fontsource-variable/red-hat-text": "^5.2.8",
+    "@fontsource-variable/sora": "^5.2.8",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.13",

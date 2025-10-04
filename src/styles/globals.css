@@ -61,6 +61,10 @@
     --shadow-shadow: var(--shadow);
     --font-weight-base: 500;
     --font-weight-heading: 700;
+
+    --font-family-sans: 'Sora', sans-serif;
+    --font-family-base: 'Sora', sans-serif;
+    --font-family-heading: 'Sora', sans-serif;
 }
 
 @layer base {
@@ -76,4 +80,15 @@
     h6 {
         @apply font-heading;
     }
+}
+
+html,
+body {
+    font-family: 'Sora Variable', 'Sora', sans-serif;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+h1 {
+    font-family: 'Sora Variable', 'Sora', sans-serif;
 }

@@ -17,6 +17,9 @@ importers:
       '@fontsource-variable/red-hat-text':
         specifier: ^5.2.8
         version: 5.2.8
+      '@fontsource-variable/sora':
+        specifier: ^5.2.8
+        version: 5.2.8
       '@radix-ui/react-label':
         specifier: ^2.1.7
         version: 2.1.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -427,6 +430,9 @@ packages:
 
   '@fontsource-variable/red-hat-text@5.2.8':
     resolution: {integrity: sha512-v0MGnXpADm1gTffdFJiFbEqddl0oCBbQaSviF9srUDvj01WVBljHjyC38EeyFsWSciY00vkye8et7MS+4QphEQ==}
+
+  '@fontsource-variable/sora@5.2.8':
+    resolution: {integrity: sha512-sP+ILTfi5r3cqmMBntI4ooQNxFI+LyHyD5hcPbWwwL4uh4kKFAkOz0w2veCXjz18fKRdva6OG0dY+5yQ02f30w==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -3411,6 +3417,8 @@ snapshots:
   '@fontsource-variable/dm-sans@5.2.8': {}
 
   '@fontsource-variable/red-hat-text@5.2.8': {}
+
+  '@fontsource-variable/sora@5.2.8': {}
 
   '@humanfs/core@0.19.1': {}
 

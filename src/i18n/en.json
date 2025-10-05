@@ -57,9 +57,13 @@
         "placeYourBet": "Place Your Bet (max: {{max}})",
         "placeBetButton": "Place Bet →",
         "betCompleted": "Bet Completed!",
-        "betCompletedDescription": "The results are in",
+        "betCompletedDescription": "The results are in, your enemy has placed their bet: {{opponentBet}}",
         "status": "Status:",
-        "resetGame": "↻ Reset Game"
+        "resetGame": "↻ Reset Game",
+        "challengerCompleted": "Now your opponent must do the challenge!",
+        "challengerNotCompleted": "Your opponent is a lucky bastard",
+        "challengedCompleted": "You must do the challenge, asshole",
+        "challengedNotCompleted": "You're a lucky bastard, you are free..."
     },
     "toasts": {
         "connecting": "Connecting to the game room...",

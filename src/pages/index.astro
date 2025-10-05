@@ -64,21 +64,35 @@ const t = getTranslations(locale)
                 </h2>
 
                 <div class="mb-8 space-y-4 sm:mb-16 sm:space-y-6">
-                    {['1', '2', '3', '4', '5', '6'].map(num => (
-                        <Card>
-                            <CardHeader>
-                                <div class="flex items-start gap-3 sm:gap-4">
-                                    <Badge
-                                        className="font-heading shrink-0 px-3 py-1.5 text-lg sm:px-4 sm:py-2 sm:text-2xl"
-                                    >{num}</Badge>
-                                    <div>
-                                        <CardTitle>{t.steps[num].title}</CardTitle>
-                                        <CardDescription set:html={t.steps[num].description} />
+                    {
+                        ['1', '2', '3', '4', '5', '6'].map(num => (
+                            <Card>
+                                <CardHeader>
+                                    <div class="flex items-start gap-3 sm:gap-4">
+                                        <Badge className="font-heading shrink-0 px-3 py-1.5 text-lg sm:px-4 sm:py-2 sm:text-2xl">
+                                            {num}
+                                        </Badge>
+                                        <div>
+                                            <CardTitle>
+                                                {
+                                                    t.steps[
+                                                        num as keyof typeof t.steps
+                                                    ].title
+                                                }
+                                            </CardTitle>
+                                            <CardDescription
+                                                set:html={
+                                                    t.steps[
+                                                        num as keyof typeof t.steps
+                                                    ].description
+                                                }
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                            </CardHeader>
-                        </Card>
-                    ))}
+                                </CardHeader>
+                            </Card>
+                        ))
+                    }
                 </div>
 
                 <!-- CTA Button -->

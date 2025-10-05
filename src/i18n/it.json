@@ -57,9 +57,13 @@
         "placeYourBet": "Piazza la Tua Scommessa (max: {{max}})",
         "placeBetButton": "Piazza Scommessa →",
         "betCompleted": "Scommessa Completata!",
-        "betCompletedDescription": "I risultati sono arrivati",
+        "betCompletedDescription": "I risultati sono arrivati, il tuo avversario ha scommesso {{opponentBet}}",
         "status": "Stato:",
-        "resetGame": "↻ Ricomincia Gioco"
+        "resetGame": "↻ Ricomincia Gioco",
+        "challengerCompleted": "Ora il tuo avversario deve fare la sfida!",
+        "challengerNotCompleted": "Niente, il tuo avversario è un bastardo fortunato",
+        "challengedCompleted": "Devi fare la sfida, coglione!",
+        "challengedNotCompleted": "Sei un bastardo fortunato, sei libero..."
     },
     "toasts": {
         "connecting": "Connessione alla stanza di gioco...",

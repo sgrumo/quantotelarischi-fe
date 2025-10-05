@@ -10,8 +10,12 @@ import {
     type OutgoingAction,
     type RoomInfo,
 } from '../../lib/models/rooms'
+import {
+    getLocaleFromBrowser,
+    t as translate,
+    type Locale,
+} from '../../lib/utils/i18n'
 import '../../styles/globals.css'
-import { getLocaleFromBrowser, t as translate, type Locale } from '../../lib/utils/i18n'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import {
@@ -43,9 +47,12 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
     const channelRef = useRef<Channel>()
 
     const locale = propLocale || getLocaleFromBrowser()
-    const t = useCallback((key: string, params?: Record<string, string | number>) => {
-        return translate(key, locale, params)
-    }, [locale])
+    const t = useCallback(
+        (key: string, params?: Record<string, string | number>) => {
+            return translate(key, locale, params)
+        },
+        [locale],
+    )
 
     const showToast = useCallback((message: string) => {
         toast.error(message)
@@ -174,12 +181,13 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                 setGameState('ChallengeDeclined')
             })
             .with({ event: 'bet_completed' }, ({ payload }) => {
-                console.log('Bet completed payload:', payload)
                 setGameState('BetCompleted')
                 setRoomInfo(
                     prev =>
                         prev && {
                             ...prev,
+                            challengedBetAmount: payload.challenged_amount,
+                            challengerBetAmount: payload.challenger_amount,
                             betStatus: payload.status,
                         },
                 )
@@ -245,7 +253,9 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
             betAmount >= roomInfo.challengeAmount
         ) {
             showToast(
-                t('toasts.betAmountTooHigh', { amount: roomInfo.challengeAmount.toString() }),
+                t('toasts.betAmountTooHigh', {
+                    amount: roomInfo.challengeAmount.toString(),
+                }),
             )
             return
         }
@@ -283,9 +293,13 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                         </CardTitle>
                         {roomInfo && userId && (
                             <CardDescription className="flex flex-wrap items-center gap-2">
-                                <span className="font-heading">{t('game.yourRole')}</span>
+                                <span className="font-heading">
+                                    {t('game.yourRole')}
+                                </span>
                                 <Badge>
-                                    {isChallenger ? t('game.challenger') : t('game.challenged')}
+                                    {isChallenger
+                                        ? t('game.challenger')
+                                        : t('game.challenged')}
                                 </Badge>
                             </CardDescription>
                         )}
@@ -360,7 +374,9 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                     gameState === 'ChallengeReceived' && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>{t('game.challengeReceived')}</CardTitle>
+                                <CardTitle>
+                                    {t('game.challengeReceived')}
+                                </CardTitle>
                                 <CardDescription>
                                     {t('game.challengeReceivedDescription')}
                                 </CardDescription>
@@ -416,7 +432,9 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                     roomInfo?.challengeAmount && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>{t('game.challengeAccepted')}</CardTitle>
+                                <CardTitle>
+                                    {t('game.challengeAccepted')}
+                                </CardTitle>
                                 <CardDescription>
                                     {t('game.challengeAcceptedDescription')}
                                 </CardDescription>
@@ -432,7 +450,11 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="bet-amount">
-                                        {t('game.placeYourBet', { max: (roomInfo.challengeAmount - 1).toString() })}
+                                        {t('game.placeYourBet', {
+                                            max: (
+                                                roomInfo.challengeAmount - 1
+                                            ).toString(),
+                                        })}
                                     </label>
                                     <Input
                                         id="bet-amount"
@@ -459,38 +481,61 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                         </Card>
                     )}
 
-                {gameState === 'BetCompleted' && roomInfo?.betStatus && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t('game.betCompleted')}</CardTitle>
-                            <CardDescription>
-                                {t('game.betCompletedDescription')}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Card className="bg-secondary-background">
-                                <CardContent>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <span className="font-heading text-base sm:text-lg">
-                                            {t('game.status')}
-                                        </span>
-                                        <Badge className="px-3 py-1.5 text-lg sm:px-4 sm:py-2 sm:text-xl">
-                                            {roomInfo.betStatus}
-                                        </Badge>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            {isChallenger && (
-                                <Button
-                                    onClick={handleResetGame}
-                                    disabled={!isConnected}
-                                >
-                                    {t('game.resetGame')}
-                                </Button>
-                            )}
-                        </CardContent>
-                    </Card>
-                )}
+                {gameState === 'BetCompleted' &&
+                    roomInfo &&
+                    roomInfo.betStatus && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{t('game.betCompleted')}</CardTitle>
+                                <CardDescription>
+                                    {t('game.betCompletedDescription', {
+                                        opponentBet: (isChallenger
+                                            ? roomInfo.challengedBetAmount!
+                                            : roomInfo.challengerBetAmount!
+                                        ).toString(),
+                                    })}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Card className="bg-secondary-background">
+                                    <CardContent>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="font-heading text-base sm:text-lg">
+                                                {t('game.status')}
+                                            </span>
+                                            <Badge className="px-3 py-1.5 text-lg sm:px-4 sm:py-2 sm:text-xl">
+                                                {isChallenger
+                                                    ? roomInfo.betStatus ===
+                                                      'completed'
+                                                        ? t(
+                                                              'game.challengerCompleted',
+                                                          )
+                                                        : t(
+                                                              'game.challengerNotCompleted',
+                                                          )
+                                                    : roomInfo.betStatus ===
+                                                        'completed'
+                                                      ? t(
+                                                            'game.challengedCompleted',
+                                                        )
+                                                      : t(
+                                                            'game.challengedNotCompleted',
+                                                        )}
+                                            </Badge>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                {isChallenger && (
+                                    <Button
+                                        onClick={handleResetGame}
+                                        disabled={!isConnected}
+                                    >
+                                        {t('game.resetGame')}
+                                    </Button>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
             </div>
         </div>
     )

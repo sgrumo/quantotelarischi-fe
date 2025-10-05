@@ -14,5 +14,5 @@ export default defineConfig({
     optimizeDeps: {
       include: ['@fontsource-variable/sora'],
     },
-  }
+  },
 });

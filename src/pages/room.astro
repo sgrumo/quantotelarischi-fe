@@ -1,16 +1,10 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import BettingGame from '../components/challenge/BettingGame'
-
-export const prerender = false
-
-const id = Astro.url.searchParams.get('id') || ''
-
-if (!id) return Astro.redirect('/404')
 ---
 
 <BaseLayout>
     <body>
-        <BettingGame roomId={id} client:only />
+        <BettingGame client:only />
     </body>
 </BaseLayout>

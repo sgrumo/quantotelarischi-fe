@@ -27,7 +27,7 @@ interface BettingGameProps {
     roomId: string
 }
 
-export default function BettingGame({ roomId }: BettingGameProps) {
+export default function BettingGame() {
     const [isConnected, setIsConnected] = useState(false)
     const [roomInfo, setRoomInfo] = useState<RoomInfo>()
     const [userId, setUserId] = useState<string>()
@@ -35,16 +35,27 @@ export default function BettingGame({ roomId }: BettingGameProps) {
     const [betAmount, setBetAmount] = useState<number>(1)
     const [challengeDescription, setChallengeDescription] = useState<string>('')
     const [gameState, setGameState] = useState<GameState>('Idle')
+    const [copied, setCopied] = useState(false)
 
     const socketRef = useRef<Socket>()
     const channelRef = useRef<Channel>()
-    const toastIdRef = useRef(0)
 
     const showToast = useCallback((message: string) => {
-        toast(message, { id: toastIdRef.current++ })
+        toast.error(message)
     }, [])
 
     useEffect(() => {
+        const urlSearchParams = new URLSearchParams(window.location.search)
+        const params = Object.fromEntries(urlSearchParams.entries())
+        const roomId = params.id
+
+        toast.info('Connecting to the game room...')
+
+        if (!roomId) {
+            showToast('Room ID is missing in the URL')
+            return
+        }
+
         const socket = new Socket(import.meta.env.PUBLIC_WS_URL, {
             logger: (kind, msg, data) => {
                 if (process.env.NODE_ENV === 'development') {
@@ -246,6 +257,15 @@ export default function BettingGame({ roomId }: BettingGameProps) {
         return userId === roomInfo?.challengerId
     }, [userId, roomInfo])
 
+    const copyRoomLink = useCallback(() => {
+        const currentUrl = window.location.href
+        navigator.clipboard.writeText(currentUrl).then(() => {
+            setCopied(true)
+            toast.success('Link copied to clipboard!')
+            setTimeout(() => setCopied(false), 2000)
+        })
+    }, [])
+
     return (
         <div className="bg-background min-h-screen p-6">
             <div className="mx-auto max-w-2xl space-y-6">
@@ -263,6 +283,31 @@ export default function BettingGame({ roomId }: BettingGameProps) {
                             </CardDescription>
                         )}
                     </CardHeader>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Share Room</CardTitle>
+                        <CardDescription>
+                            Send this link to another person to join the game
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="flex gap-2">
+                            <Input
+                                readOnly
+                                value={window.location.href}
+                                className="flex-1"
+                            />
+                            <Button
+                                onClick={copyRoomLink}
+                                variant={copied ? 'neutral' : 'default'}
+                                className="min-w-24"
+                            >
+                                {copied ? '✓ Copied' : 'Copy'}
+                            </Button>
+                        </div>
+                    </CardContent>
                 </Card>
 
                 {isChallenger && gameState === 'Idle' && (

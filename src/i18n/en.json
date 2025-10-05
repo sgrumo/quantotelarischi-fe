@@ -1,0 +1,76 @@
+{
+    "home": {
+        "title": "QUANTOTELARISCHI?",
+        "subtitle": "Coglione di merda",
+        "howToPlay": "How to Play",
+        "createRoom": "Create New Room",
+        "creating": "Creating..."
+    },
+    "steps": {
+        "1": {
+            "title": "Create a new room",
+            "description": "Click the button below to generate your unique room"
+        },
+        "2": {
+            "title": "Send the link",
+            "description": "Share the generated link with a friend (max 2 users per room)"
+        },
+        "3": {
+            "title": "Send the challenge",
+            "description": "Write a challenge description (what the loser must do)"
+        },
+        "4": {
+            "title": "Wait for bet amount",
+            "description": "Your friend sets the bet amount (minimum 2)"
+        },
+        "5": {
+            "title": "Place your bets",
+            "description": "Both players bet a number from 2 to (betAmount - 1)"
+        },
+        "6": {
+            "title": "The winner is decided!",
+            "description": "If Bet₁ == Bet₂ OR Bet₁ + Bet₂ == BetAmount → The Challenged must complete the challenge!"
+        }
+    },
+    "game": {
+        "title": "Betting Game",
+        "yourRole": "Your Role:",
+        "challenger": "CHALLENGER",
+        "challenged": "CHALLENGED",
+        "shareRoom": "Share Room",
+        "shareRoomDescription": "Send this link to another person to join the game",
+        "copy": "Copy",
+        "copied": "✓ Copied",
+        "sendChallenge": "Send Challenge",
+        "sendChallengeDescription": "Create a challenge for your opponent",
+        "challengeDescription": "Challenge Description",
+        "challengePlaceholder": "Describe your challenge...",
+        "sendChallengeButton": "Send Challenge →",
+        "challengeReceived": "Challenge Received!",
+        "challengeReceivedDescription": "Review the challenge and decide your response",
+        "yourBetAmount": "Your Bet Amount",
+        "accept": "✓ Accept",
+        "deny": "✗ Deny",
+        "challengeAccepted": "Challenge Accepted!",
+        "challengeAcceptedDescription": "Place your bet now",
+        "challengeAmount": "Challenge Amount:",
+        "placeYourBet": "Place Your Bet (max: {{max}})",
+        "placeBetButton": "Place Bet →",
+        "betCompleted": "Bet Completed!",
+        "betCompletedDescription": "The results are in",
+        "status": "Status:",
+        "resetGame": "↻ Reset Game"
+    },
+    "toasts": {
+        "connecting": "Connecting to the game room...",
+        "roomIdMissing": "Room ID is missing in the URL",
+        "connectionError": "Connection error occurred",
+        "failedToJoin": "Failed to join room",
+        "connectionTimeout": "Connection timeout",
+        "enterChallengeDescription": "Please enter a challenge description",
+        "enterValidBetAmount": "Please enter a valid bet amount",
+        "betAmountTooHigh": "Bet amount must be less than {{amount}}",
+        "linkCopied": "Link copied to clipboard!",
+        "roomCreationFailed": "Failed to create room. Please try again."
+    }
+}

@@ -8,30 +8,36 @@ import {
     CardTitle,
 } from '@/components/ui/Card'
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getLocaleFromUrl, getTranslations } from '@/lib/utils/i18n'
+
+const locale = getLocaleFromUrl(Astro.url)
+const t = getTranslations(locale)
 ---
 
 <BaseLayout>
     <main class="bg-background min-h-screen">
         <section
-            class="relative flex min-h-screen flex-col items-center justify-center px-6 py-12"
+            class="relative flex min-h-screen flex-col items-center justify-center px-4 py-8 sm:px-6 sm:py-12"
         >
             <div class="text-center">
-                <h1 class="font-heading mb-8 text-7xl leading-none md:text-9xl">
-                    QUANTOTELARISCHI?
+                <h1
+                    class="font-heading mb-6 text-3xl leading-tight sm:mb-8 sm:leading-none md:text-5xl lg:text-5xl"
+                >
+                    {t.home.title}
                 </h1>
-                <p class="font-heading text-2xl md:text-3xl">
-                    Coglione di merda
+                <p class="font-heading text-xl sm:text-2xl md:text-3xl">
+                    {t.home.subtitle}
                 </p>
             </div>
 
             <!-- Scroll Arrow -->
             <a
                 href="#instructions"
-                class="bg-main border-border rounded-base hover:translate-x-boxShadowX hover:translate-y-boxShadowY shadow-shadow absolute bottom-12 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center border-4 transition-all"
+                class="bg-main border-border rounded-base shadow-shadow absolute bottom-6 left-1/2 flex h-12 w-12 -translate-x-1/2 items-center justify-center border-2 transition-all sm:bottom-12 sm:h-16 sm:w-16 sm:border-4"
                 aria-label="Scroll to instructions"
             >
                 <svg
-                    class="h-8 w-8"
+                    class="h-6 w-6 sm:h-8 sm:w-8"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -46,135 +52,39 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
         </section>
 
         <!-- Instructions Section -->
-        <section id="instructions" class="min-h-screen px-6 py-20">
+        <section
+            id="instructions"
+            class="min-h-screen px-4 py-12 sm:px-6 sm:py-20"
+        >
             <div class="mx-auto max-w-4xl">
-                <h2 class="font-heading mb-16 text-center text-5xl md:text-6xl">
-                    How to Play
+                <h2
+                    class="font-heading mb-8 text-center text-3xl sm:mb-16 sm:text-5xl md:text-6xl"
+                >
+                    {t.home.howToPlay}
                 </h2>
 
-                <div class="mb-16 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <div class="flex items-start gap-4">
-                                <Badge
-                                    className="font-heading px-4 py-2 text-2xl"
-                                    >1</Badge
-                                >
-                                <div>
-                                    <CardTitle>Create a new room</CardTitle>
-                                    <CardDescription>
-                                        Click the button below to generate your
-                                        unique room
-                                    </CardDescription>
+                <div class="mb-8 space-y-4 sm:mb-16 sm:space-y-6">
+                    {['1', '2', '3', '4', '5', '6'].map(num => (
+                        <Card>
+                            <CardHeader>
+                                <div class="flex items-start gap-3 sm:gap-4">
+                                    <Badge
+                                        className="font-heading shrink-0 px-3 py-1.5 text-lg sm:px-4 sm:py-2 sm:text-2xl"
+                                    >{num}</Badge>
+                                    <div>
+                                        <CardTitle>{t.steps[num].title}</CardTitle>
+                                        <CardDescription set:html={t.steps[num].description} />
+                                    </div>
                                 </div>
-                            </div>
-                        </CardHeader>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <div class="flex items-start gap-4">
-                                <Badge
-                                    className="font-heading px-4 py-2 text-2xl"
-                                    >2</Badge
-                                >
-                                <div>
-                                    <CardTitle>Send the link</CardTitle>
-                                    <CardDescription>
-                                        Share the generated link with a friend
-                                        (max 2 users per room)
-                                    </CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <div class="flex items-start gap-4">
-                                <Badge
-                                    className="font-heading px-4 py-2 text-2xl"
-                                    >3</Badge
-                                >
-                                <div>
-                                    <CardTitle>Send the challenge</CardTitle>
-                                    <CardDescription>
-                                        Write a challenge description (what the
-                                        loser must do)
-                                    </CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <div class="flex items-start gap-4">
-                                <Badge
-                                    className="font-heading px-4 py-2 text-2xl"
-                                    >4</Badge
-                                >
-                                <div>
-                                    <CardTitle>Wait for bet amount</CardTitle>
-                                    <CardDescription>
-                                        Your friend sets the bet amount (minimum
-                                        2)
-                                    </CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <div class="flex items-start gap-4">
-                                <Badge
-                                    className="font-heading px-4 py-2 text-2xl"
-                                    >5</Badge
-                                >
-                                <div>
-                                    <CardTitle>Place your bets</CardTitle>
-                                    <CardDescription>
-                                        Both players bet a number from 2 to
-                                        (betAmount - 1)
-                                    </CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <div class="flex items-start gap-4">
-                                <Badge
-                                    className="font-heading px-4 py-2 text-2xl"
-                                    >6</Badge
-                                >
-                                <div>
-                                    <CardTitle>The winner is decided!</CardTitle
-                                    >
-                                    <CardDescription>
-                                        <span
-                                            class="font-heading text-foreground"
-                                        >
-                                            If Bet₁ == Bet₂ <span
-                                                class="text-main">OR</span
-                                            > Bet₁ + Bet₂ == BetAmount
-                                        </span>
-                                        <br />
-                                        → The <strong>Challenged</strong> must complete
-                                        the challenge!
-                                    </CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                    </Card>
+                            </CardHeader>
+                        </Card>
+                    ))}
                 </div>
 
                 <!-- CTA Button -->
                 <div class="flex justify-center">
                     <div class="inline-block">
-                        <NewRoom client:only="preact" />
+                        <NewRoom client:only="preact" locale={locale} />
                     </div>
                 </div>
             </div>

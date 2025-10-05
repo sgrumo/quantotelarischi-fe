@@ -1,10 +1,13 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getLocaleFromUrl } from '@/lib/utils/i18n'
 import BettingGame from '../components/challenge/BettingGame'
+
+const locale = getLocaleFromUrl(Astro.url)
 ---
 
 <BaseLayout>
     <body>
-        <BettingGame client:only />
+        <BettingGame client:only locale={locale} />
     </body>
 </BaseLayout>

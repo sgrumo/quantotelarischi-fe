@@ -1,0 +1,76 @@
+{
+    "home": {
+        "title": "QUANTOTELARISCHI?",
+        "subtitle": "Coglione di merda",
+        "howToPlay": "Come Si Gioca",
+        "createRoom": "Crea Nuova Stanza",
+        "creating": "Creazione..."
+    },
+    "steps": {
+        "1": {
+            "title": "Crea una nuova stanza",
+            "description": "Clicca il pulsante qui sotto per generare la tua stanza unica"
+        },
+        "2": {
+            "title": "Invia il link",
+            "description": "Condividi il link generato con un amico (massimo 2 utenti per stanza)"
+        },
+        "3": {
+            "title": "Invia la sfida",
+            "description": "Scrivi una descrizione della sfida (cosa deve fare chi perde)"
+        },
+        "4": {
+            "title": "Aspetta l'importo della scommessa",
+            "description": "Il tuo amico imposta l'importo della scommessa (minimo 2)"
+        },
+        "5": {
+            "title": "Piazza le tue scommesse",
+            "description": "Entrambi i giocatori scommettono un numero da 2 a (importoScommessa - 1)"
+        },
+        "6": {
+            "title": "Il vincitore è deciso!",
+            "description": "Se Scommessa₁ == Scommessa₂ O Scommessa₁ + Scommessa₂ == ImportoScommessa → Lo Sfidato deve completare la sfida!"
+        }
+    },
+    "game": {
+        "title": "Gioco di Scommesse",
+        "yourRole": "Il Tuo Ruolo:",
+        "challenger": "SFIDANTE",
+        "challenged": "SFIDATO",
+        "shareRoom": "Condividi Stanza",
+        "shareRoomDescription": "Invia questo link a un'altra persona per unirsi al gioco",
+        "copy": "Copia",
+        "copied": "✓ Copiato",
+        "sendChallenge": "Invia Sfida",
+        "sendChallengeDescription": "Crea una sfida per il tuo avversario",
+        "challengeDescription": "Descrizione Sfida",
+        "challengePlaceholder": "Descrivi la tua sfida...",
+        "sendChallengeButton": "Invia Sfida →",
+        "challengeReceived": "Sfida Ricevuta!",
+        "challengeReceivedDescription": "Esamina la sfida e decidi la tua risposta",
+        "yourBetAmount": "Il Tuo Importo Scommessa",
+        "accept": "✓ Accetta",
+        "deny": "✗ Rifiuta",
+        "challengeAccepted": "Sfida Accettata!",
+        "challengeAcceptedDescription": "Piazza la tua scommessa ora",
+        "challengeAmount": "Importo Sfida:",
+        "placeYourBet": "Piazza la Tua Scommessa (max: {{max}})",
+        "placeBetButton": "Piazza Scommessa →",
+        "betCompleted": "Scommessa Completata!",
+        "betCompletedDescription": "I risultati sono arrivati",
+        "status": "Stato:",
+        "resetGame": "↻ Ricomincia Gioco"
+    },
+    "toasts": {
+        "connecting": "Connessione alla stanza di gioco...",
+        "roomIdMissing": "ID stanza mancante nell'URL",
+        "connectionError": "Si è verificato un errore di connessione",
+        "failedToJoin": "Impossibile unirsi alla stanza",
+        "connectionTimeout": "Timeout della connessione",
+        "enterChallengeDescription": "Per favore inserisci una descrizione della sfida",
+        "enterValidBetAmount": "Per favore inserisci un importo di scommessa valido",
+        "betAmountTooHigh": "L'importo della scommessa deve essere inferiore a {{amount}}",
+        "linkCopied": "Link copiato negli appunti!",
+        "roomCreationFailed": "Impossibile creare la stanza. Riprova."
+    }
+}

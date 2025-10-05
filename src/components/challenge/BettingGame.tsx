@@ -11,6 +11,7 @@ import {
     type RoomInfo,
 } from '../../lib/models/rooms'
 import '../../styles/globals.css'
+import { getLocaleFromBrowser, t as translate, type Locale } from '../../lib/utils/i18n'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import {
@@ -25,9 +26,10 @@ import { Textarea } from '../ui/Textarea'
 
 interface BettingGameProps {
     roomId: string
+    locale?: Locale
 }
 
-export default function BettingGame() {
+export default function BettingGame({ locale: propLocale }: BettingGameProps) {
     const [isConnected, setIsConnected] = useState(false)
     const [roomInfo, setRoomInfo] = useState<RoomInfo>()
     const [userId, setUserId] = useState<string>()
@@ -40,6 +42,11 @@ export default function BettingGame() {
     const socketRef = useRef<Socket>()
     const channelRef = useRef<Channel>()
 
+    const locale = propLocale || getLocaleFromBrowser()
+    const t = useCallback((key: string, params?: Record<string, string | number>) => {
+        return translate(key, locale, params)
+    }, [locale])
+
     const showToast = useCallback((message: string) => {
         toast.error(message)
     }, [])
@@ -49,10 +56,10 @@ export default function BettingGame() {
         const params = Object.fromEntries(urlSearchParams.entries())
         const roomId = params.id
 
-        toast.info('Connecting to the game room...')
+        toast.info(t('toasts.connecting'))
 
         if (!roomId) {
-            showToast('Room ID is missing in the URL')
+            showToast(t('toasts.roomIdMissing'))
             return
         }
 
@@ -73,7 +80,7 @@ export default function BettingGame() {
 
         socket.onError(error => {
             console.error('Socket error:', error)
-            showToast('Connection error occurred')
+            showToast(t('toasts.connectionError'))
         })
 
         socket.onClose(event => {
@@ -94,11 +101,11 @@ export default function BettingGame() {
             })
             .receive('error', resp => {
                 console.error('Unable to join room:', resp)
-                showToast('Failed to join room')
+                showToast(t('toasts.failedToJoin'))
             })
             .receive('timeout', () => {
                 console.error('Join timeout')
-                showToast('Connection timeout')
+                showToast(t('toasts.connectionTimeout'))
             })
 
         if (joinResult) {
@@ -203,7 +210,7 @@ export default function BettingGame() {
 
     const handleSendChallenge = useCallback(() => {
         if (!challengeDescription || challengeDescription.trim() === '') {
-            showToast('Please enter a challenge description')
+            showToast(t('toasts.enterChallengeDescription'))
             return
         }
         sendEvent({
@@ -211,18 +218,18 @@ export default function BettingGame() {
             payload: { challenge_description: challengeDescription },
         })
         setChallengeDescription('')
-    }, [sendEvent, challengeDescription, showToast])
+    }, [sendEvent, challengeDescription, showToast, t])
 
     const handleAcceptChallenge = useCallback(() => {
         if (!challengeBetAmount || challengeBetAmount <= 0) {
-            showToast('Please enter a valid bet amount')
+            showToast(t('toasts.enterValidBetAmount'))
             return
         }
         sendEvent({
             event: 'accept_challenge',
             payload: { amount: challengeBetAmount },
         })
-    }, [sendEvent, challengeBetAmount, showToast])
+    }, [sendEvent, challengeBetAmount, showToast, t])
 
     const handleDenyChallenge = useCallback(() => {
         sendEvent({ event: 'decline_challenge', payload: {} })
@@ -230,7 +237,7 @@ export default function BettingGame() {
 
     const handlePlaceBet = useCallback(() => {
         if (!betAmount || betAmount <= 0) {
-            showToast('Please enter a valid bet amount')
+            showToast(t('toasts.enterValidBetAmount'))
             return
         }
         if (
@@ -238,12 +245,12 @@ export default function BettingGame() {
             betAmount >= roomInfo.challengeAmount
         ) {
             showToast(
-                `Bet amount must be less than ${roomInfo.challengeAmount}`,
+                t('toasts.betAmountTooHigh', { amount: roomInfo.challengeAmount.toString() }),
             )
             return
         }
         sendEvent({ event: 'place_bet', payload: { amount: betAmount } })
-    }, [sendEvent, betAmount, roomInfo, showToast])
+    }, [sendEvent, betAmount, roomInfo, showToast, t])
 
     const handleResetGame = useCallback(() => {
         setGameState('Idle')
@@ -261,24 +268,24 @@ export default function BettingGame() {
         const currentUrl = window.location.href
         navigator.clipboard.writeText(currentUrl).then(() => {
             setCopied(true)
-            toast.success('Link copied to clipboard!')
+            toast.success(t('toasts.linkCopied'))
             setTimeout(() => setCopied(false), 2000)
         })
-    }, [])
+    }, [t])
 
     return (
-        <div className="bg-background min-h-screen p-6">
-            <div className="mx-auto max-w-2xl space-y-6">
+        <div className="bg-background min-h-screen p-4 sm:p-6">
+            <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-3xl">
-                            🎲 Betting Game
+                        <CardTitle className="text-2xl sm:text-3xl">
+                            {t('game.title')}
                         </CardTitle>
                         {roomInfo && userId && (
-                            <CardDescription className="flex items-center gap-2">
-                                <span className="font-heading">Your Role:</span>
+                            <CardDescription className="flex flex-wrap items-center gap-2">
+                                <span className="font-heading">{t('game.yourRole')}</span>
                                 <Badge>
-                                    {isChallenger ? 'CHALLENGER' : 'CHALLENGED'}
+                                    {isChallenger ? t('game.challenger') : t('game.challenged')}
                                 </Badge>
                             </CardDescription>
                         )}
@@ -287,24 +294,24 @@ export default function BettingGame() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Share Room</CardTitle>
+                        <CardTitle>{t('game.shareRoom')}</CardTitle>
                         <CardDescription>
-                            Send this link to another person to join the game
+                            {t('game.shareRoomDescription')}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <div className="flex gap-2">
+                        <div className="flex flex-col gap-2 sm:flex-row">
                             <Input
                                 readOnly
                                 value={window.location.href}
-                                className="flex-1"
+                                className="flex-1 text-sm"
                             />
                             <Button
                                 onClick={copyRoomLink}
                                 variant={copied ? 'neutral' : 'default'}
-                                className="min-w-24"
+                                className="min-w-24 sm:w-auto"
                             >
-                                {copied ? '✓ Copied' : 'Copy'}
+                                {copied ? t('game.copied') : t('game.copy')}
                             </Button>
                         </div>
                     </CardContent>
@@ -313,20 +320,20 @@ export default function BettingGame() {
                 {isChallenger && gameState === 'Idle' && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>Send Challenge</CardTitle>
+                            <CardTitle>{t('game.sendChallenge')}</CardTitle>
                             <CardDescription>
-                                Create a challenge for your opponent
+                                {t('game.sendChallengeDescription')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <label htmlFor="challenge-description">
-                                    Challenge Description
+                                    {t('game.challengeDescription')}
                                 </label>
                                 <Textarea
                                     id="challenge-description"
                                     rows={4}
-                                    placeholder="Describe your challenge..."
+                                    placeholder={t('game.challengePlaceholder')}
                                     value={challengeDescription}
                                     onChange={e =>
                                         setChallengeDescription(
@@ -342,7 +349,7 @@ export default function BettingGame() {
                                     !isConnected
                                 }
                             >
-                                Send Challenge →
+                                {t('game.sendChallengeButton')}
                             </Button>
                         </CardContent>
                     </Card>
@@ -353,10 +360,9 @@ export default function BettingGame() {
                     gameState === 'ChallengeReceived' && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>Challenge Received!</CardTitle>
+                                <CardTitle>{t('game.challengeReceived')}</CardTitle>
                                 <CardDescription>
-                                    Review the challenge and decide your
-                                    response
+                                    {t('game.challengeReceivedDescription')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -369,7 +375,7 @@ export default function BettingGame() {
                                 </Card>
                                 <div className="space-y-2">
                                     <label htmlFor="challenge-bet-amount">
-                                        Your Bet Amount
+                                        {t('game.yourBetAmount')}
                                     </label>
                                     <Input
                                         id="challenge-bet-amount"
@@ -385,13 +391,13 @@ export default function BettingGame() {
                                         }
                                     />
                                 </div>
-                                <div className="flex gap-4">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                                     <Button
                                         onClick={handleAcceptChallenge}
                                         disabled={!isConnected}
                                         className="flex-1"
                                     >
-                                        ✓ Accept
+                                        {t('game.accept')}
                                     </Button>
                                     <Button
                                         onClick={handleDenyChallenge}
@@ -399,7 +405,7 @@ export default function BettingGame() {
                                         variant="neutral"
                                         className="flex-1"
                                     >
-                                        ✗ Deny
+                                        {t('game.deny')}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -410,24 +416,23 @@ export default function BettingGame() {
                     roomInfo?.challengeAmount && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>Challenge Accepted!</CardTitle>
+                                <CardTitle>{t('game.challengeAccepted')}</CardTitle>
                                 <CardDescription>
-                                    Place your bet now
+                                    {t('game.challengeAcceptedDescription')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex items-center gap-2 text-lg">
+                                <div className="flex flex-wrap items-center gap-2 text-base sm:text-lg">
                                     <span className="font-base">
-                                        Challenge Amount:
+                                        {t('game.challengeAmount')}
                                     </span>
-                                    <Badge className="px-4 py-2 text-2xl">
+                                    <Badge className="px-3 py-1.5 text-xl sm:px-4 sm:py-2 sm:text-2xl">
                                         {roomInfo.challengeAmount}
                                     </Badge>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="bet-amount">
-                                        Place Your Bet (max:{' '}
-                                        {roomInfo.challengeAmount - 1})
+                                        {t('game.placeYourBet', { max: (roomInfo.challengeAmount - 1).toString() })}
                                     </label>
                                     <Input
                                         id="bet-amount"
@@ -448,7 +453,7 @@ export default function BettingGame() {
                                     onClick={handlePlaceBet}
                                     disabled={!isConnected}
                                 >
-                                    Place Bet →
+                                    {t('game.placeBetButton')}
                                 </Button>
                             </CardContent>
                         </Card>
@@ -457,19 +462,19 @@ export default function BettingGame() {
                 {gameState === 'BetCompleted' && roomInfo?.betStatus && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>Bet Completed!</CardTitle>
+                            <CardTitle>{t('game.betCompleted')}</CardTitle>
                             <CardDescription>
-                                The results are in
+                                {t('game.betCompletedDescription')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <Card className="bg-secondary-background">
                                 <CardContent>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-heading text-lg">
-                                            Status:
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="font-heading text-base sm:text-lg">
+                                            {t('game.status')}
                                         </span>
-                                        <Badge className="px-4 py-2 text-xl">
+                                        <Badge className="px-3 py-1.5 text-lg sm:px-4 sm:py-2 sm:text-xl">
                                             {roomInfo.betStatus}
                                         </Badge>
                                     </div>
@@ -480,7 +485,7 @@ export default function BettingGame() {
                                     onClick={handleResetGame}
                                     disabled={!isConnected}
                                 >
-                                    ↻ Reset Game
+                                    {t('game.resetGame')}
                                 </Button>
                             )}
                         </CardContent>

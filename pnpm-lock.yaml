@@ -11,12 +11,6 @@ importers:
       '@astrojs/preact':
         specifier: ^4.1.0
         version: 4.1.0(@babel/core@7.28.3)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(preact@10.27.1)
-      '@fontsource-variable/dm-sans':
-        specifier: ^5.2.8
-        version: 5.2.8
-      '@fontsource-variable/red-hat-text':
-        specifier: ^5.2.8
-        version: 5.2.8
       '@fontsource-variable/sora':
         specifier: ^5.2.8
         version: 5.2.8
@@ -424,12 +418,6 @@ packages:
   '@eslint/plugin-kit@0.3.5':
     resolution: {integrity: sha512-Z5kJ+wU3oA7MMIqVR9tyZRtjYPr4OC004Q4Rw7pgOKUOKkJfZ3O24nz3WYfGRpMDNmcOi3TwQOmgm7B7Tpii0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-
-  '@fontsource-variable/dm-sans@5.2.8':
-    resolution: {integrity: sha512-AxkvMTvNWgfrmlyjiV05vlHYJa+nRQCf1EfvIrQAPBpFJW0O9VTz7oAFr9S3lvbWdmnFoBk7yFqQL86u64nl2g==}
-
-  '@fontsource-variable/red-hat-text@5.2.8':
-    resolution: {integrity: sha512-v0MGnXpADm1gTffdFJiFbEqddl0oCBbQaSviF9srUDvj01WVBljHjyC38EeyFsWSciY00vkye8et7MS+4QphEQ==}
 
   '@fontsource-variable/sora@5.2.8':
     resolution: {integrity: sha512-sP+ILTfi5r3cqmMBntI4ooQNxFI+LyHyD5hcPbWwwL4uh4kKFAkOz0w2veCXjz18fKRdva6OG0dY+5yQ02f30w==}
@@ -3413,10 +3401,6 @@ snapshots:
     dependencies:
       '@eslint/core': 0.15.2
       levn: 0.4.1
-
-  '@fontsource-variable/dm-sans@5.2.8': {}
-
-  '@fontsource-variable/red-hat-text@5.2.8': {}
 
   '@fontsource-variable/sora@5.2.8': {}
 

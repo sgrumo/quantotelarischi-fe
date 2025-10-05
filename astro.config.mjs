@@ -10,9 +10,6 @@ export default defineConfig({
   integrations: [preact()],
 
   vite: {
-    plugins: [tailwindcss()],
-    optimizeDeps: {
-      include: ['@fontsource-variable/sora'],
-    },
+    plugins: [tailwindcss()]
   },
 });

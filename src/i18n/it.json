@@ -56,6 +56,8 @@
         "challengeAmount": "Importo Sfida:",
         "placeYourBet": "Piazza la Tua Scommessa (max: {{max}})",
         "placeBetButton": "Piazza Scommessa →",
+        "waitingForOpponentBet": "In attesa della scommessa dell'avversario...",
+        "waitingForChallenge": "In attesa che lo sfidante invii la sfida...",
         "betCompleted": "Scommessa Completata!",
         "betCompletedDescription": "I risultati sono arrivati, il tuo avversario ha scommesso {{opponentBet}}",
         "status": "Stato:",

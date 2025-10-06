@@ -56,6 +56,8 @@
         "challengeAmount": "Challenge Amount:",
         "placeYourBet": "Place Your Bet (max: {{max}})",
         "placeBetButton": "Place Bet →",
+        "waitingForOpponentBet": "Waiting for opponent's bet...",
+        "waitingForChallenge": "Waiting for challenger to send the challenge...",
         "betCompleted": "Bet Completed!",
         "betCompletedDescription": "The results are in, your enemy has placed their bet: {{opponentBet}}",
         "status": "Status:",

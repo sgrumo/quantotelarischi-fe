@@ -42,6 +42,7 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
     const [challengeDescription, setChallengeDescription] = useState<string>('')
     const [gameState, setGameState] = useState<GameState>('Idle')
     const [copied, setCopied] = useState(false)
+    const [hasPlacedBet, setHasPlacedBet] = useState(false)
 
     const socketRef = useRef<Socket>()
     const channelRef = useRef<Channel>()
@@ -70,7 +71,11 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
             return
         }
 
+        const storageKey = `room_${roomId}_userId`
+        let persistedUserId = sessionStorage.getItem(storageKey)
+
         const socket = new Socket(import.meta.env.PUBLIC_WS_URL, {
+            params: persistedUserId ? { user_id: persistedUserId } : {},
             logger: (kind, msg, data) => {
                 if (process.env.NODE_ENV === 'development') {
                     console.log(`Phoenix ${kind}: ${msg}`, data)
@@ -105,6 +110,7 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                 setRoomInfo(response.roomInfo)
                 setUserId(response.userId)
                 setIsConnected(true)
+                sessionStorage.setItem(storageKey, response.userId)
             })
             .receive('error', resp => {
                 console.error('Unable to join room:', resp)
@@ -124,6 +130,7 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                 'challenge_declined',
                 'bet_completed',
                 'user_left',
+                'game_reset',
             ]
 
             eventHandlers.forEach(eventType => {
@@ -132,7 +139,6 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                         event: eventType,
                         payload,
                     })
-                    console.log('Received action:', action)
                     handleIncomingMessage(action)
                 })
             })
@@ -196,6 +202,9 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                 setGameState('Idle')
                 setRoomInfo(undefined)
             })
+            .with({ event: 'game_reset' }, () => {
+                resetGame()
+            })
             .exhaustive()
     }, [])
 
@@ -243,7 +252,20 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
         sendEvent({ event: 'decline_challenge', payload: {} })
     }, [sendEvent])
 
-    const handlePlaceBet = useCallback(() => {
+    const isChallenger = useMemo(() => {
+        return userId === roomInfo?.challengerId
+    }, [userId, roomInfo])
+
+    const copyRoomLink = useCallback(() => {
+        const currentUrl = window.location.href
+        navigator.clipboard.writeText(currentUrl).then(() => {
+            setCopied(true)
+            toast.success(t('toasts.linkCopied'))
+            setTimeout(() => setCopied(false), 2000)
+        })
+    }, [t])
+
+    const handlePlaceBet = () => {
         if (!betAmount || betAmount <= 0) {
             showToast(t('toasts.enterValidBetAmount'))
             return
@@ -260,28 +282,21 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
             return
         }
         sendEvent({ event: 'place_bet', payload: { amount: betAmount } })
-    }, [sendEvent, betAmount, roomInfo, showToast, t])
+        setHasPlacedBet(true)
+    }
 
-    const handleResetGame = useCallback(() => {
+    const resetGame = () => {
         setGameState('Idle')
         setChallengeDescription('')
         setChallengeBetAmount(100)
         setBetAmount(1)
+        setHasPlacedBet(false)
+    }
+
+    const handleResetGame = () => {
+        resetGame()
         sendEvent({ event: 'reset_game', payload: {} })
-    }, [sendEvent])
-
-    const isChallenger = useMemo(() => {
-        return userId === roomInfo?.challengerId
-    }, [userId, roomInfo])
-
-    const copyRoomLink = useCallback(() => {
-        const currentUrl = window.location.href
-        navigator.clipboard.writeText(currentUrl).then(() => {
-            setCopied(true)
-            toast.success(t('toasts.linkCopied'))
-            setTimeout(() => setCopied(false), 2000)
-        })
-    }, [t])
+    }
 
     return (
         <div className="bg-background min-h-screen p-4 sm:p-6">
@@ -306,66 +321,81 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                     </CardHeader>
                 </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t('game.shareRoom')}</CardTitle>
-                        <CardDescription>
-                            {t('game.shareRoomDescription')}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        <div className="flex flex-col gap-2 sm:flex-row">
-                            <Input
-                                readOnly
-                                value={window.location.href}
-                                className="flex-1 text-sm"
-                            />
-                            <Button
-                                onClick={copyRoomLink}
-                                variant={copied ? 'neutral' : 'default'}
-                                className="min-w-24 sm:w-auto"
-                            >
-                                {copied ? t('game.copied') : t('game.copy')}
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-
                 {isChallenger && gameState === 'Idle' && (
+                    <>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{t('game.shareRoom')}</CardTitle>
+                                <CardDescription>
+                                    {t('game.shareRoomDescription')}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <div className="flex flex-col gap-2 sm:flex-row">
+                                    <Input
+                                        readOnly
+                                        value={window.location.href}
+                                        className="flex-1 text-sm"
+                                    />
+                                    <Button
+                                        onClick={copyRoomLink}
+                                        variant={copied ? 'neutral' : 'default'}
+                                        className="min-w-24 sm:w-auto"
+                                    >
+                                        {copied
+                                            ? t('game.copied')
+                                            : t('game.copy')}
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{t('game.sendChallenge')}</CardTitle>
+                                <CardDescription>
+                                    {t('game.sendChallengeDescription')}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="challenge-description">
+                                        {t('game.challengeDescription')}
+                                    </label>
+                                    <Textarea
+                                        id="challenge-description"
+                                        rows={4}
+                                        placeholder={t(
+                                            'game.challengePlaceholder',
+                                        )}
+                                        value={challengeDescription}
+                                        onChange={e =>
+                                            setChallengeDescription(
+                                                e.currentTarget.value,
+                                            )
+                                        }
+                                    />
+                                </div>
+                                <Button
+                                    onClick={handleSendChallenge}
+                                    disabled={
+                                        roomInfo?.challengedId === null ||
+                                        !isConnected
+                                    }
+                                >
+                                    {t('game.sendChallengeButton')}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </>
+                )}
+
+                {!isChallenger && gameState === 'Idle' && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>{t('game.sendChallenge')}</CardTitle>
-                            <CardDescription>
-                                {t('game.sendChallengeDescription')}
-                            </CardDescription>
+                            <CardTitle>
+                                {t('game.waitingForChallenge')}
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <label htmlFor="challenge-description">
-                                    {t('game.challengeDescription')}
-                                </label>
-                                <Textarea
-                                    id="challenge-description"
-                                    rows={4}
-                                    placeholder={t('game.challengePlaceholder')}
-                                    value={challengeDescription}
-                                    onChange={e =>
-                                        setChallengeDescription(
-                                            e.currentTarget.value,
-                                        )
-                                    }
-                                />
-                            </div>
-                            <Button
-                                onClick={handleSendChallenge}
-                                disabled={
-                                    roomInfo?.challengedId === null ||
-                                    !isConnected
-                                }
-                            >
-                                {t('game.sendChallengeButton')}
-                            </Button>
-                        </CardContent>
                     </Card>
                 )}
 
@@ -436,7 +466,11 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                                     {t('game.challengeAccepted')}
                                 </CardTitle>
                                 <CardDescription>
-                                    {t('game.challengeAcceptedDescription')}
+                                    {hasPlacedBet
+                                        ? t('game.waitingForOpponentBet')
+                                        : t(
+                                              'game.challengeAcceptedDescription',
+                                          )}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -469,11 +503,12 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                                                 ) || 1,
                                             )
                                         }
+                                        disabled={hasPlacedBet}
                                     />
                                 </div>
                                 <Button
                                     onClick={handlePlaceBet}
-                                    disabled={!isConnected}
+                                    disabled={!isConnected || hasPlacedBet}
                                 >
                                     {t('game.placeBetButton')}
                                 </Button>
@@ -499,30 +534,25 @@ export default function BettingGame({ locale: propLocale }: BettingGameProps) {
                             <CardContent className="space-y-4">
                                 <Card className="bg-secondary-background">
                                     <CardContent>
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <span className="font-heading text-base sm:text-lg">
-                                                {t('game.status')}
-                                            </span>
-                                            <Badge className="px-3 py-1.5 text-lg sm:px-4 sm:py-2 sm:text-xl">
-                                                {isChallenger
-                                                    ? roomInfo.betStatus ===
-                                                      'completed'
-                                                        ? t(
-                                                              'game.challengerCompleted',
-                                                          )
-                                                        : t(
-                                                              'game.challengerNotCompleted',
-                                                          )
-                                                    : roomInfo.betStatus ===
-                                                        'completed'
-                                                      ? t(
-                                                            'game.challengedCompleted',
-                                                        )
-                                                      : t(
-                                                            'game.challengedNotCompleted',
-                                                        )}
-                                            </Badge>
-                                        </div>
+                                        <Badge className="px-3 py-1.5 text-lg sm:px-4 sm:py-2 sm:text-xl">
+                                            {isChallenger
+                                                ? roomInfo.betStatus ===
+                                                  'completed'
+                                                    ? t(
+                                                          'game.challengerCompleted',
+                                                      )
+                                                    : t(
+                                                          'game.challengerNotCompleted',
+                                                      )
+                                                : roomInfo.betStatus ===
+                                                    'completed'
+                                                  ? t(
+                                                        'game.challengedCompleted',
+                                                    )
+                                                  : t(
+                                                        'game.challengedNotCompleted',
+                                                    )}
+                                        </Badge>
                                     </CardContent>
                                 </Card>
                                 {isChallenger && (

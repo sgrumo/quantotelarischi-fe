@@ -79,6 +79,10 @@ export const IncomingActionSchema = z.discriminatedUnion('event', [
         payload: RoomInfoSchema,
     }),
     z.object({
+        event: z.literal('game_reset'),
+        payload: z.object({}),
+    }),
+    z.object({
         event: z.literal('user_left'),
         payload: z.object({
             user_id: z.string(),
